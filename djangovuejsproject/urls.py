@@ -23,8 +23,8 @@ from catalog import views
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='index'),
-    url(r'^products/$', views.product_list),
-    url(r'^products/(?P<pk>[0-9]+)$', views.product_detail),
+    url(r'^leads/$', views.lead_list),
+    url(r'^leads/(?P<pk>[0-9]+)$', views.lead_detail),
     path('admin/', admin.site.urls),
     url(r'^(?:.*)/?$', TemplateView.as_view(template_name='index.html'), name='catchall'),
 
