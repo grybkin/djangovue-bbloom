@@ -5,4 +5,6 @@ class LeadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lead
-        fields = ('pk', 'name', 'email', 'status')
+        fields = ('__all__')
+        # fields = ('pk', 'name', 'email', 'status')
+        # exclude = ('user', )

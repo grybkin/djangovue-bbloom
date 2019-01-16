@@ -1,13 +1,42 @@
 
 # -*- coding: utf-8 -*-
-from rest_framework import status
+from rest_framework import status, mixins, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound, NotAuthenticated
+from rest_framework.permissions import BasePermission, IsAdminUser, AllowAny
+
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from .models import Lead 
-from .serializers import * 
+from . import models
+from . import serializers
+
+class IsObjectOwner(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if user and not user.is_anonymous:
+            return obj.user == user
+        return False
+
+
+# ViewSets define the view behavior.
+class LeadViewSet( mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   viewsets.GenericViewSet):
+
+    # def perform_create(self, serializer):
+    #    serializer.save(user=self.request.user)
+
+    queryset = models.Lead.objects.all()
+    serializer_class = serializers.LeadSerializer
+    permission_classes = (AllowAny|IsAdminUser,)
+
+
 
 @csrf_exempt
 @api_view(['GET', 'POST'])
