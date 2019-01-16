@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_jwt',
-    'django_filters',
+#    'django_filters',
     'webpack_loader',
     'corsheaders'
 ]
