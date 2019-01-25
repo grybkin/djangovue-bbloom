@@ -38,7 +38,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    'my.bbloom.io'
+    'my.bbloom.io',
+    '35.239.105.117'
 ]
 
 
