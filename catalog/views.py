@@ -1,7 +1,8 @@
 
 # -*- coding: utf-8 -*-
 from rest_framework import status, mixins, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, list_route, action, detail_route
+
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, NotAuthenticated
 from rest_framework.permissions import BasePermission, IsAdminUser, AllowAny
@@ -11,6 +12,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from . import models
 from . import serializers
+
+from . import snov
 
 class IsObjectOwner(BasePermission):
 
@@ -31,7 +34,42 @@ class LeadViewSet( mixins.CreateModelMixin,
 
     # def perform_create(self, serializer):
     #    serializer.save(user=self.request.user)
+    @list_route(methods=['get'], url_path='domain/(?P<company>.*)')
+    def domain(self, request, company):
+        """
+        Obtain domain name from company name with phantombuster
+        """
 
+        return Response({'company': company})
+
+    @list_route(methods=['get'], url_path='validate/(?P<provider>.*)/(?P<firstName>.*)/(?P<lastName>.*)/(?P<domain>.*)')
+    def validate(self, request, provider, firstName, lastName, domain):
+        """
+        Validate users with providers. Allowed provider values are
+        'snov', 'anymail', 'zerobounce', and 'hunter'
+        """
+        # provider = request.query_params.get("provider", provider)
+        # domain = request.query_params.get("domain", None)
+        # firstName = request.query_params.get("firstName", None)
+        # lastName = request.query_params.get("lastName", None)
+
+        if provider == 'snov':
+            print('Validating with snov')
+
+            return Response(snov.get_email_finder(domain, firstName, lastName))
+
+        elif provider == 'hunter':
+            pass
+        elif provider == 'anymail':
+            pass
+        elif provider == 'zerobounce':
+            pass
+        else:
+            return Response({'error': 'provider not supported: {}'.format(provider)})
+
+        return Response({'error': 'Cannot process the request for provider {} and username {}'.format(provider, username)})
+
+        
     queryset = models.Lead.objects.all()
     serializer_class = serializers.LeadSerializer
     permission_classes = (AllowAny|IsAdminUser,)

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 class Lead(models.Model):
 
@@ -12,7 +13,7 @@ class Lead(models.Model):
          Returns the url to access a particular instance of Lead.
          """
          return reverse('lead-detail-view', args=[str(self.id)])
-    
+
     def __str__(self):
         
         return self.email
