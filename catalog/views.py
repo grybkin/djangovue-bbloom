@@ -13,7 +13,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from . import models
 from . import serializers
 
-from . import snov
+from . import snov, hunter, anymail
+
+import requests
+import json
 
 class IsObjectOwner(BasePermission):
 
@@ -42,34 +45,55 @@ class LeadViewSet( mixins.CreateModelMixin,
 
         return Response({'company': company})
 
-    @list_route(methods=['get'], url_path='validate/(?P<provider>.*)/(?P<firstName>.*)/(?P<lastName>.*)/(?P<domain>.*)')
-    def validate(self, request, provider, firstName, lastName, domain):
+    @list_route(methods=['get'], url_path='get_email/(?P<providers>.*)/(?P<firstName>.*)/(?P<lastName>.*)/(?P<domain>.*)')
+    def get_email(self, request, providers, firstName, lastName, domain):
         """
         Validate users with providers. Allowed provider values are
-        'snov', 'anymail', 'zerobounce', and 'hunter'
+        'snov', 'anymail', and 'hunter'
         """
         # provider = request.query_params.get("provider", provider)
         # domain = request.query_params.get("domain", None)
         # firstName = request.query_params.get("firstName", None)
         # lastName = request.query_params.get("lastName", None)
+        res = {}
+        for provider in providers.split(','):
+            if provider == 'snov':
+                res['snov'] = snov.get_email_finder(domain, firstName, lastName)
+            elif provider == 'hunter':
+                res['hunter'] = hunter.get_email_finder(domain, firstName, lastName)
+            elif provider == 'anymail':
+                res['anymail'] = anymail.get_email_finder(domain, firstName, lastName)
+            else:
+                res['provider'] = {'error': 'provider not supported: {}'.format(provider)}
 
-        if provider == 'snov':
-            print('Validating with snov')
+        return Response(res)
 
-            return Response(snov.get_email_finder(domain, firstName, lastName))
+    @list_route(methods=['get'], url_path='validate_email/(?P<email>.*)/(?P<ip_address>.*)')
+    def validate_email(self, request, email, ip_address):
+        """
+        Validate user email with zerobounce.
+        """
+        params = {
+            'email': email,
+            'ip_address': ip_address,
+            'api_key': '2b3c798fde3a4bdaae56a2a372d379c1'
+        }
 
-        elif provider == 'hunter':
-            pass
-        elif provider == 'anymail':
-            pass
-        elif provider == 'zerobounce':
-            pass
-        else:
-            return Response({'error': 'provider not supported: {}'.format(provider)})
+        res = requests.get('https://api.zerobounce.net/v2/validate', params=params)
 
-        return Response({'error': 'Cannot process the request for provider {} and username {}'.format(provider, username)})
-
+        return Response(json.loads(res.text))
+ 
+    @list_route(methods=['post'], url_path='get_domain')
+    def get_domain(self, request):
+        """
+        Get domain name from phantombuster.
+        Required parameters are 'companies'. Optional is 'blacklist'
+        """
         
+
+
+        return Response({'error': 'This endpoint is being deprecated'})
+
     queryset = models.Lead.objects.all()
     serializer_class = serializers.LeadSerializer
     permission_classes = (AllowAny|IsAdminUser,)

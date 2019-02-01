@@ -4,11 +4,12 @@ import json
 
 access_token = None
 
-def get_access_token():
+def get_access_token(force=False):
     global access_token
 
-    if access_token:
-        return access_token
+    if (not force):
+        if access_token:
+            return access_token
 
     params = {
         'grant_type':'client_credentials',
@@ -27,7 +28,7 @@ def get_access_token():
     return access_token
 
 def get_email_finder(domain, firstName, lastName):
-    token = get_access_token()
+    token = get_access_token(True)
     params = {'access_token':token,
             'domain': domain,
             'firstName': firstName,
